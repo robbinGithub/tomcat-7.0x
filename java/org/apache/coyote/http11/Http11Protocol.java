@@ -57,13 +57,19 @@ public class Http11Protocol extends AbstractHttp11JsseProtocol<Socket> {
 
     // ------------------------------------------------------------ Constructor
 
-
+    /**
+     * 创建HTTP协议处理器
+     */
     public Http11Protocol() {
         endpoint = new JIoEndpoint();
         cHandler = new Http11ConnectionHandler(this);   //创建HTTP11连接处理器
         ((JIoEndpoint) endpoint).setHandler(cHandler);
-        setSoLinger(Constants.DEFAULT_CONNECTION_LINGER);
+        
+        // 当网卡收到关闭连接请求后，无论数据是否发送完毕，立即发送RST包关闭连接 
+        setSoLinger(Constants.DEFAULT_CONNECTION_LINGER); 
         setSoTimeout(Constants.DEFAULT_CONNECTION_TIMEOUT);
+        
+        // 禁用了Nagle算法，允许小包的发送
         setTcpNoDelay(Constants.DEFAULT_TCP_NO_DELAY);
     }
 

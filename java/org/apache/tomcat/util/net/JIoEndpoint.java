@@ -308,7 +308,8 @@ public class JIoEndpoint extends AbstractEndpoint<Socket> {
                         // Tell to close the socket
                         state = SocketState.CLOSED;
                     }
-
+                    
+                    // 请求数据处理
                     if ((state != SocketState.CLOSED)) {
                         if (status == null) {
                             state = handler.process(socket, SocketStatus.OPEN_READ);
@@ -316,6 +317,7 @@ public class JIoEndpoint extends AbstractEndpoint<Socket> {
                             state = handler.process(socket,status);
                         }
                     }
+                    // 根据处理后的socket状态处理socket
                     if (state == SocketState.CLOSED) {
                         // Close socket
                         if (log.isTraceEnabled()) {
@@ -422,19 +424,23 @@ public class JIoEndpoint extends AbstractEndpoint<Socket> {
     public void startInternal() throws Exception {
 
         if (!running) {
+        	
+        	// 更新运行状态
             running = true;
             paused = false;
 
-            // Create worker collection  
+            // Create worker collection 
+            // 创建工作线程执行器
             if (getExecutor() == null) {
                 createExecutor();
             }
-
+            
+            // 初始化连接限制器
             initializeConnectionLatch();
-            //开始接受连接线程
+            // 启动接受连接线程
             startAcceptorThreads();
 
-            // Start async timeout thread
+            // 启动检查请求超时连接线程
             Thread timeoutThread = new Thread(new AsyncTimeout(),
                     getName() + "-AsyncTimeout");
             timeoutThread.setPriority(threadPriority);
@@ -523,6 +529,8 @@ public class JIoEndpoint extends AbstractEndpoint<Socket> {
     protected boolean processSocket(Socket socket) {
         // Process the request from this socket
         try {
+        	
+        	// 包装Socket
             SocketWrapper<Socket> wrapper = new SocketWrapper<Socket>(socket);
             wrapper.setKeepAliveLeft(getMaxKeepAliveRequests());
             wrapper.setSecure(isSSLEnabled());
@@ -531,7 +539,9 @@ public class JIoEndpoint extends AbstractEndpoint<Socket> {
                 return false;
             }
             //调用工作线程池
-            getExecutor().execute(new SocketProcessor(wrapper));  
+            getExecutor().execute(new SocketProcessor(wrapper));
+            
+        // 执行器拒绝执行异常
         } catch (RejectedExecutionException x) {
             log.warn("Socket processing request was rejected for:"+socket,x);
             return false;

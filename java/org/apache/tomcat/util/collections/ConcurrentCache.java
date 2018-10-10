@@ -19,7 +19,14 @@ package org.apache.tomcat.util.collections;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
-
+/**
+ * 
+ * @author robbin.zhang
+ * @see http://www.cnblogs.com/intsmaze/p/9477803.html
+ *
+ * @param <K>
+ * @param <V>
+ */
 public final class ConcurrentCache<K,V> {
 
     private final int size;
@@ -31,7 +38,7 @@ public final class ConcurrentCache<K,V> {
     public ConcurrentCache(int size) {
         this.size = size;
         this.eden = new ConcurrentHashMap<K,V>(size);
-        this.longterm = new WeakHashMap<K,V>(size);
+        this.longterm = new WeakHashMap<K,V>(size);  // 自动清理数据，一旦内存不够，在GC时，没有被引用的表项很快会被清除掉，从而避免系统内存溢出。
     }
 
     public V get(K k) {
@@ -48,6 +55,8 @@ public final class ConcurrentCache<K,V> {
     }
 
     public void put(K k, V v) {
+    	
+    	// eden区域满了，把值放入longtern区域，清理eden区
         if (this.eden.size() >= size) {
             synchronized (longterm) {
                 this.longterm.putAll(this.eden);

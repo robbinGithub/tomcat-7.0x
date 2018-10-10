@@ -27,6 +27,8 @@ import org.apache.juli.logging.LogFactory;
  * Shared latch that allows the latch to be acquired a limited number of times
  * after which all subsequent requests to acquire the latch will be placed in a
  * FIFO queue until one of the shares is returned.
+ * 
+   * 共享锁，允许锁被获取限制数量次数，获取锁的请求，将被放入一个FIFO队列中，直到一个共享被返回。
  */
 public class LimitLatch {
 
